@@ -207,12 +207,13 @@ var Flash = exports.Flash = function () {
         return addressesToCosign[name];
       });
       var iota = this.iota;
-      var addresses = digestsPerUser.map(function (_, i) {
+      var addresses = addressesToCosign[this.name].map(function (_, i) {
         var digestsForIndex = digestsPerUser.map(function (digests) {
           return digests[i];
         });
         return (0, _state.finalizeAddress)(iota, digestsForIndex);
       });
+      return new _command2.default(this, this.state, 'newAddresses', addresses.join(","));
     }
   }, {
     key: 'join',

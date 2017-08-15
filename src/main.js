@@ -88,12 +88,13 @@ export class Flash {
       return addressesToCosign[name]
     })
     var iota = this.iota
-    var addresses = digestsPerUser.map((_, i) => {
+    var addresses = addressesToCosign[this.name].map((_, i) => {
       var digestsForIndex = digestsPerUser.map((digests) => {
         return digests[i]
       })
       return finalizeAddress(iota, digestsForIndex)
     })
+    return new Command(this, this.state, 'newAddresses', addresses.join(","))
   }
 
   join(seed, settlementAddress, securityLevel) {
