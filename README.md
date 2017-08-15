@@ -2,6 +2,8 @@
 
 ===
 
+[![Build Status](https://travis-ci.org/peterwilli/flash.lib.js.svg?branch=master)](https://travis-ci.org/peterwilli/flash.lib.js)
+
 ## Introduction
 
 WIP
