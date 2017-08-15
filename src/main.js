@@ -1,29 +1,37 @@
-import { seedGen } from "./utils"
+import { stateInitializeAddresses } from 'helpers/state'
 
 export class Flash {
   state = {}
 
-  initialize(maxAmountOfTransactions, depositAmount, settlementAddress, securityLevel) {
-    this.state = generateState(depositAmount, settlementAddress, securityLevel)
+  initialize(seed, depth, depositAmount, settlementAddress, securityLevel) {
+    this.state = Flash.generateState(seed, depth, depositAmount, settlementAddress, securityLevel)
   }
 
-  join() {
-
+  stateIsInitialized() {
+    return this.state.publicLedger.remainderAddress !== null
   }
 
-  static generateState(depositAmount, settlementAddress, securityLevel) {
-    var myseed = seedGen(81)
-    return {
-      mySeed,
+  join(name, digest) {
+    if(!this.stateIsInitialized()) {
+      addressesToCosign
+    }
+  }
+
+  static generateState(seed, depth, depositAmount, settlementAddress, securityLevel) {
+    var state = {
       publicLedger: {
-        remainderAddress: iota.multisig.getDigest(myseed, 0, securityLevel)
-        depositAmount: depositAmount
-        addressIndex: 1,
+        depth,
+        addressesToCosign: [],
+        remainderAddress: null,
+        depositAmount: depositAmount,
+        addressIndex: 0,
         stakes: [],
         balances: [],
         settlementAddresses: [settlementAddress],
         securityLevels: [securityLevel],
       }
     }
+    stateInitializeAddresses(seed, depth, state)
+    return state
   }
 }
