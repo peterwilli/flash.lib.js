@@ -115,7 +115,9 @@ var Flash = exports.Flash = function () {
   _createClass(Flash, [{
     key: 'initialize',
     value: function initialize(seed, depth, depositAmount, settlementAddress, securityLevel) {
-      this.state = this.generateState(seed, depth, depositAmount, settlementAddress, securityLevel);
+      var stateCmd = this.generateState(seed, depth, depositAmount, settlementAddress, securityLevel);
+      this.state = stateCmd.returnValue;
+      return stateCmd;
     }
   }, {
     key: 'stateIsInitialized',

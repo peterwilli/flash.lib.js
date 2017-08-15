@@ -8,7 +8,9 @@ export class Flash {
   }
 
   initialize(seed, depth, depositAmount, settlementAddress, securityLevel) {
-    this.state = this.generateState(seed, depth, depositAmount, settlementAddress, securityLevel)
+    var stateCmd = this.generateState(seed, depth, depositAmount, settlementAddress, securityLevel)
+    this.state = stateCmd.returnValue
+    return stateCmd
   }
 
   stateIsInitialized() {
