@@ -34,6 +34,7 @@
 
     //seed, depth, depositAmount, settlementAddress, securityLevel
     var initializeCmd = flash1.initialize(seed1, 5, 100, "SETTLEMENT99", 2).executeSelf()
+    console.log(initializeCmd);
     flash2.executeCommand(initializeCmd.toSerial())
     //join(seed, settlementAddress, securityLevel)
     var joinCmd = flash2.join(seed2, "SETTLEMENT999", 2).executeSelf()
