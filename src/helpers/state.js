@@ -16,7 +16,7 @@ export const finalizeAddress = (iota, digests) => {
   var Address = iota.multisig.address;
   var finalAddress = new Address()
   for(var digest of digests) {
-    finalAddress.absorb(digest)
+    finalAddress.absorb(digest.trytes)
   }
   finalAddress = finalAddress.finalize()
   return finalAddress

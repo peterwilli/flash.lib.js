@@ -1,17 +1,21 @@
+import constants from '../constants'
+
 export default class Command {
-  constructor(returnValue, command, ...args) {
+  constructor(flash, returnValue, command, ...args) {
     this.command = command
+    this.flash = flash
     this.args = args
     this.returnValue = returnValue
     Command.validateCommand([command].concat(args))
   }
 
-  command() {
-    var ret = [this.command].concat(this.args).join(constants.commandSeparator)
+  toSerial() {
+    return [this.command].concat(this.args).join(constants.commandSeparator)
   }
 
-  executeSelf(flash) {
-    flash.executeCommand(this.command())
+  executeSelf() {
+    this.flash.executeCommand(this.toSerial())
+    return this
   }
 
   static validateCommand(cmd) {

@@ -1,7 +1,7 @@
 {
   "main": "dist/flash.lib.js",
   "scripts": {
-    "build": "node ./node_modules/webpack/bin/webpack.js"
+    "dev": "node ./node_modules/webpack/bin/webpack.js --watch"
   },
   "dependencies": {
     "webpack": "^3.5.4"

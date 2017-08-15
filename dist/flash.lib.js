@@ -74,11 +74,22 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = {
+  commandSeparator: '|'
+};
+
+/***/ }),
+/* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -91,13 +102,13 @@ exports.Flash = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _state = __webpack_require__(1);
+var _state = __webpack_require__(2);
 
-var _command = __webpack_require__(2);
+var _command = __webpack_require__(3);
 
 var _command2 = _interopRequireDefault(_command);
 
-var _constants = __webpack_require__(3);
+var _constants = __webpack_require__(0);
 
 var _constants2 = _interopRequireDefault(_constants);
 
@@ -115,101 +126,6 @@ var Flash = exports.Flash = function () {
   _createClass(Flash, [{
     key: 'initialize',
     value: function initialize(seed, depth, depositAmount, settlementAddress, securityLevel) {
-      var stateCmd = this.generateState(seed, depth, depositAmount, settlementAddress, securityLevel);
-      this.state = stateCmd.returnValue;
-      return stateCmd;
-    }
-  }, {
-    key: 'stateIsInitialized',
-    value: function stateIsInitialized() {
-      return this.state.publicLedger.remainderAddress !== null;
-    }
-  }, {
-    key: 'executeCommand',
-    value: function executeCommand(serialData) {
-      var firstSepIndex = serialData.indexOf(_constants2.default.commandSeparator);
-      var command = serialData.substring(0, firstSepIndex);
-      var args = serialData.substring(firstSepIndex, serialData.length).split(_constants2.default.commandSeparator);
-
-      switch (command) {
-        case 'initialize':
-          this.state = JSON.parse(args[0]);
-          break;
-
-        case 'join':
-          var name = args[0];
-          var newUser = JSON.parse(args[1]);
-          var addressesToCosignForNewUser = JSON.parse(args[2]);
-          this.state.addressesToCosign[name] = addressesToCosignForNewUser;
-          this.state.users[name] = newUser;
-          break;
-      }
-    }
-  }, {
-    key: 'finalizeAddresses',
-    value: function finalizeAddresses() {
-      // First find the order finalization
-      var addressesToCosign = this.state.addressesToCosign;
-      var users = this.state.users;
-      var namesArr = Object.keys(users);
-      namesArr.sort(function (a, b) {
-        return users[a].index - users[b].index;
-      });
-      console.log('namesArr', namesArr);
-
-      var totalAddresses = namesArr.reduce(function (name, sum) {
-        return addressesToCosign[name].length + sum;
-      });
-
-      // validate if all the digests are the same length
-      var sameLengthOfDigests = totalAddresses / Object.keys(addressesToCosign).length === addressesToCosign[this.name].length;
-      if (!sameLengthOfDigests) {
-        throw new Error("Different users have different lengths of digests to sign. Make sure you synchronized the addresses correctly.");
-      }
-
-      // TODO: Validate index of each address
-
-      var digestsPerUser = namesArr.map(function (name) {
-        return addressesToCosign[name];
-      });
-      console.log('digestsPerUser', digestsPerUser);
-
-      var iota = this.iota;
-      var addresses = digestsPerUser.map(function (_, i) {
-        var digestsForIndex = digestsPerUser.map(function (digests) {
-          return digests[i];
-        });
-        return (0, _state.finalizeAddress)(iota, digestsForIndex);
-      });
-      console.log(addresses);
-    }
-  }, {
-    key: 'join',
-    value: function join(seed, name, settlementAddress, securityLevel) {
-      if (this.stateIsInitialized()) {
-        throw new Error("You can't add new users to an initialized channel. Please withdraw the funds and create a new channel if you want to add more users.");
-      } else {
-        if (name in this.state.users) {
-          throw new Error('User ' + name + ' already exists. Please choose a different name.');
-        }
-        if (Object.keys(this.state.pending.addressesToCosign).length > 0) {
-          var newUser = {
-            index: Object.keys(this.state.users).length,
-            balance: 0,
-            stake: 0,
-            settlementAddress: settlementAddress,
-            securityLevel: securityLevel
-          };
-          var addressesToCosign = (0, _state.generateAddressDigests)(this.iota, seed, depth + 1, 0, securityLevel);
-          return new _command2.default(this.state, 'join', name, JSON.stringify(newUser), JSON.stringify(addressesToCosign)).executeSelf(this);
-        } else {
-          throw new Error("You can't join a channel with an empty addressesToCosign. Please create an initial channel first.");
-        }
-      }
-    }
-  }, {
-    key: 'generateState',
-    value: function generateState(seed, depth, depositAmount, settlementAddress, securityLevel) {
       var state = {
         pending: {
           addressesToCosign: {}
@@ -217,7 +133,7 @@ var Flash = exports.Flash = function () {
         users: {},
         publicLedger: {
           depth: depth,
-          remaifirstIndexnderAddress: null,
+          remainderAddress: null,
           depositAmount: depositAmount,
           addressIndex: 0
         }
@@ -234,7 +150,93 @@ var Flash = exports.Flash = function () {
       };state.pending.addressesToCosign[this.name] = (0, _state.generateAddressDigests)(this.iota, seed, depth + 1, 0, securityLevel);
 
       // TODO: create a custom serialization function instead of JSON.stringify.
-      return new _command2.default(state, 'initialize', JSON.stringify(state));
+      return new _command2.default(this, state, 'initialize', JSON.stringify(state));
+    }
+  }, {
+    key: 'stateIsInitialized',
+    value: function stateIsInitialized() {
+      return this.state.publicLedger.remainderAddress !== null;
+    }
+  }, {
+    key: 'executeCommand',
+    value: function executeCommand(serialData) {
+      var firstSepIndex = serialData.indexOf(_constants2.default.commandSeparator);
+      var command = serialData.substring(0, firstSepIndex);
+      var args = serialData.substring(firstSepIndex + 1, serialData.length).split(_constants2.default.commandSeparator);
+
+      console.log('command: \'' + command + '\'');
+
+      switch (command) {
+        case 'initialize':
+          this.state = JSON.parse(args[0]);
+          break;
+
+        case 'join':
+          var name = args[0];
+          var newUser = JSON.parse(args[1]);
+          var addressesToCosignForNewUser = JSON.parse(args[2]);
+          this.state.pending.addressesToCosign[name] = addressesToCosignForNewUser;
+          this.state.users[name] = newUser;
+          console.log(this.state);
+          break;
+      }
+    }
+  }, {
+    key: 'finalizeAddresses',
+    value: function finalizeAddresses() {
+      // First find the order finalization
+      var addressesToCosign = this.state.pending.addressesToCosign;
+      var users = this.state.users;
+      var namesArr = Object.keys(users);
+      namesArr.sort(function (a, b) {
+        return users[a].index - users[b].index;
+      });
+
+      var masterLength = addressesToCosign[this.name].length;
+      for (var i = 0; i < namesArr.length; i++) {
+        if (i > 0) {
+          // We check the length of all other user's digests to the master user
+          if (addressesToCosign[namesArr[i]].length !== masterLength) {
+            throw new Error("Different users have different lengths of digests to sign. Make sure you synchronized the addresses correctly.");
+          }
+        }
+      }
+
+      // TODO: Validate index of each address
+      var digestsPerUser = namesArr.map(function (name) {
+        return addressesToCosign[name];
+      });
+      var iota = this.iota;
+      var addresses = digestsPerUser.map(function (_, i) {
+        var digestsForIndex = digestsPerUser.map(function (digests) {
+          return digests[i];
+        });
+        return (0, _state.finalizeAddress)(iota, digestsForIndex);
+      });
+    }
+  }, {
+    key: 'join',
+    value: function join(seed, settlementAddress, securityLevel) {
+      if (this.stateIsInitialized()) {
+        throw new Error("You can't add new users to an initialized channel. Please withdraw the funds and create a new channel if you want to add more users.");
+      } else {
+        if (name in this.state.users) {
+          throw new Error('User ' + name + ' already exists. Please choose a different name.');
+        }
+        if (Object.keys(this.state.pending.addressesToCosign).length > 0) {
+          var newUser = {
+            index: Object.keys(this.state.users).length,
+            balance: 0,
+            stake: 0,
+            settlementAddress: settlementAddress,
+            securityLevel: securityLevel
+          };
+          var addressesToCosign = (0, _state.generateAddressDigests)(this.iota, seed, this.state.publicLedger.depth + 1, 0, securityLevel);
+          return new _command2.default(this, this.state, 'join', this.name, JSON.stringify(newUser), JSON.stringify(addressesToCosign));
+        } else {
+          throw new Error("You can't join a channel with an empty addressesToCosign. Please create an initial channel first.");
+        }
+      }
     }
   }]);
 
@@ -244,7 +246,7 @@ var Flash = exports.Flash = function () {
 window.Flash = Flash;
 
 /***/ }),
-/* 1 */
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -278,7 +280,7 @@ var finalizeAddress = exports.finalizeAddress = function finalizeAddress(iota, d
     for (var _iterator = digests[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
       var digest = _step.value;
 
-      finalAddress.absorb(digest);
+      finalAddress.absorb(digest.trytes);
     }
   } catch (err) {
     _didIteratorError = true;
@@ -300,7 +302,7 @@ var finalizeAddress = exports.finalizeAddress = function finalizeAddress(iota, d
 };
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -312,16 +314,23 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _constants = __webpack_require__(0);
+
+var _constants2 = _interopRequireDefault(_constants);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Command = function () {
-  function Command(returnValue, command) {
+  function Command(flash, returnValue, command) {
     _classCallCheck(this, Command);
 
     this.command = command;
+    this.flash = flash;
 
-    for (var _len = arguments.length, args = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-      args[_key - 2] = arguments[_key];
+    for (var _len = arguments.length, args = Array(_len > 3 ? _len - 3 : 0), _key = 3; _key < _len; _key++) {
+      args[_key - 3] = arguments[_key];
     }
 
     this.args = args;
@@ -330,14 +339,15 @@ var Command = function () {
   }
 
   _createClass(Command, [{
-    key: "command",
-    value: function command() {
-      var ret = [this.command].concat(this.args).join(constants.commandSeparator);
+    key: "toSerial",
+    value: function toSerial() {
+      return [this.command].concat(this.args).join(_constants2.default.commandSeparator);
     }
   }, {
     key: "executeSelf",
-    value: function executeSelf(flash) {
-      flash.executeCommand(this.command());
+    value: function executeSelf() {
+      this.flash.executeCommand(this.toSerial());
+      return this;
     }
   }], [{
     key: "validateCommand",
@@ -351,7 +361,7 @@ var Command = function () {
           var arg = _step.value;
 
           if (arg.indexOf("|") > -1) {
-            throw new Error("You cannot have a '" + constants.commandSeparator + "' in commands. Please remove '" + constants.commandSeparator + "' from the following command argument: " + arg);
+            throw new Error("You cannot have a '" + _constants2.default.commandSeparator + "' in commands. Please remove '" + _constants2.default.commandSeparator + "' from the following command argument: " + arg);
           }
         }
       } catch (err) {
@@ -375,17 +385,6 @@ var Command = function () {
 }();
 
 exports.default = Command;
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = {
-  commandSeparator: '|'
-};
 
 /***/ })
 /******/ ]);

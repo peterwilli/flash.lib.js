@@ -14,10 +14,30 @@
       provider: "http://52.58.212.188:14700"
     })
     var flash1 = new Flash(iota, "The_PeterNat0r")
+    var flash2 = new Flash(iota, "PuncherPaul")
+    var flash3 = new Flash(iota, "CrackingChris")
+    var flash4 = new Flash(iota, "LaughingLewis")
+    var flash5 = new Flash(iota, "DancingDom")
+
     // for debugging reasons
     window.flash1 = flash1
+    window.flash2 = flash2
+    window.flash3 = flash2
+    window.flash4 = flash2
+    window.flash5 = flash2
+
     var seed1 = "ATOIEVOLI"
+    var seed2 = "PETERISLAME"
+    // All the functions that modify the flash state, will return a Command.
+    // You can run executeSelf to run them on your own flash state.
+    // You can use command() to send them somewhere else.
+
     //seed, depth, depositAmount, settlementAddress, securityLevel
-    flash1.initialize(seed1, 5, 100, "SETTLEMENT99", 2)
+    var initializeCmd = flash1.initialize(seed1, 5, 100, "SETTLEMENT99", 2).executeSelf()
+    flash2.executeCommand(initializeCmd.toSerial())
+    //join(seed, settlementAddress, securityLevel)
+    var joinCmd = flash2.join(seed2, "SETTLEMENT999", 2).executeSelf()
+    flash1.executeCommand(joinCmd.toSerial())
+    flash1.finalizeAddresses()
   </script>
 </html>
