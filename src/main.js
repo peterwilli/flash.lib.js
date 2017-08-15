@@ -2,7 +2,7 @@ import {generateAddressDigests, finalizeAddress} from './helpers/state'
 import Command from './helpers/command'
 import constants from './constants'
 
-export class Flash {
+export default class Flash {
   constructor(iota, name) {
     Object.assign(this, { iota, name })
   }
@@ -121,4 +121,6 @@ export class Flash {
   }
 }
 
-window.Flash = Flash // Ugly but webpack libray definition is currently not linking to window for browsers (see: https://stackoverflow.com/questions/34736771/webpack-umd-library-return-object-default)
+if(typeof window !== 'undefined') {
+  window.Flash = Flash // Ugly but webpack libray definition is currently not linking to window for browsers (see: https://stackoverflow.com/questions/34736771/webpack-umd-library-return-object-default)
+}

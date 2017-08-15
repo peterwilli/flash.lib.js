@@ -2,9 +2,11 @@
   "main": "dist/flash.lib.js",
   "scripts": {
     "dev": "node ./node_modules/webpack/bin/webpack.js --watch",
+    "build": "node ./node_modules/webpack/bin/webpack.js",
     "test": "node_modules/mocha/bin/mocha --compilers js:babel-core/register --colors ./test/*.spec.js"
   },
   "dependencies": {
+    "iota.lib.js": "^0.4.0",
     "mocha": "^3.5.0",
     "webpack": "^3.5.4"
   },
