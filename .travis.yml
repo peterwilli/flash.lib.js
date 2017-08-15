@@ -1,0 +1,17 @@
+language: node_js
+node_js:
+- '6'
+- '7'
+script:
+  - npm install
+  - npm run build
+  - npm run test
+  - tar -cvzf flash.lib.tar.gz lib
+deploy:
+  skip_cleanup: true
+  provider: releases
+  api_key:
+    secure: eTvx4RUNJME4ifxobSBweEClxx3y5C7VPg+QCD2We5KY3+40ZcBYHH5GgT8jfenRt7Oc9H65vC0qvA51XcHeAelvgK4JOFE/o8xLaafGInly47yLhzPSO7ak6UnAhcNPALIvcfa0GChlSR5xNXBm/qBRr9J8mXvjQE0fzGdYb37cEniXEymt8Qd7L8UfHrXGJ1XGF6tA3Hh3H4Nnk1FsR4QIRiWBHNAMv3+zkl5fPiQgHbGSmplxlS0hRNGXnhDXHAVZwzco159ypcSs4Ahqy8qFLZyuQVHiLeVw3ge7NcPqbpx8hq9JpmyNmVNEybocjAKpy8Wl/7l5tEAeqAgq/iRpIUasnRKiw7cwv15fRmT9Aal14XirFQOyf9Jv7tc9E2lOr+hxX4A7L6CfYC9G3DAEB8pUMMMVoema9ow4HFz9APsPVdyQTWLJG7wkyU1hS0KX/WXODlHHrbE/Mu4eYZO0XAwA7BD8obX+v34a/xgbqH1H5q5WTLeBskRJmuJLDuRFOUseXwhzzuWOQnbBvgHlhgT31K/rwoDyK8O8xW75sQLWH1SsOqG9uWZZHVqUCOIMkO6BRWUYZ/Vek6qTBAsfiOXZPDDpBquecHPPCL7LkUKifE21CrTus34FjgRzPf5LBrSU6UQ5Px0RwAICvCP5M4be2zzgZpKT5vzCCHY=
+  file: flash.lib.tar.gz
+  on:
+    tags: true
