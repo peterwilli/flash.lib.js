@@ -121,4 +121,4 @@ export class Flash {
   }
 }
 
-window.Flash = Flash
+window.Flash = Flash // Ugly but webpack libray definition is currently not linking to window for browsers (see: https://stackoverflow.com/questions/34736771/webpack-umd-library-return-object-default)

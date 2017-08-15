@@ -1,21 +1,33 @@
-module.exports = {
-  entry: './src/main.js',
+var webpack = require('webpack');
+var path = require('path');
+var libraryName = 'Flash';
+var outputFile = 'flash.lib.js';
+
+var config = {
+  entry: __dirname + '/src/main.js',
+  devtool: 'source-map',
   output: {
-    library: "flash.lib",
-    libraryTarget: "umd",
-    filename: "dist/flash.lib.js",
-    auxiliaryComment: "Test Comment"
+    path: __dirname + '/lib',
+    filename: outputFile,
+
+    // Temporary disabled (see bottom of main.js for why)
+    //library: libraryName,
+    libraryTarget: 'umd',
+    umdNamedDefine: true
   },
   module: {
-    rules: [{
-      test: /\.js$/,
-      exclude: /(node_modules|bower_components)/,
-      use: {
+    loaders: [
+      {
+        test: /(\.jsx|\.js)$/,
         loader: 'babel-loader',
-        options: {
-          presets: ['env']
-        }
+        exclude: /(node_modules|bower_components)/
       }
-    }]
+    ]
+  },
+  resolve: {
+    modules: [path.resolve('./node_modules'), path.resolve('./src')],
+    extensions: ['.json', '.js']
   }
 };
+
+module.exports = config;

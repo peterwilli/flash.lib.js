@@ -6,6 +6,8 @@
 
 WIP
 
+## How to run
+
 ## Under the hood
 
 In this implementation of the Flash JS-library, every action happens within a single class: `Flash`. The instance of `Flash` holds your flash state (current addresses from the tree, list of users, etc).
