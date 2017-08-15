@@ -3,12 +3,12 @@ import Command from './helpers/command'
 import constants from './constants'
 
 export class Flash {
-  constructor(name) {
-    this.name = name
+  constructor(iota, name) {
+    Object.assign(this, { iota, name })
   }
 
   initialize(seed, depth, depositAmount, settlementAddress, securityLevel) {
-    this.state = Flash.generateState(seed, depth, depositAmount, settlementAddress, securityLevel)
+    this.state = this.generateState(seed, depth, depositAmount, settlementAddress, securityLevel)
   }
 
   stateIsInitialized() {
@@ -35,7 +35,7 @@ export class Flash {
     }
   }
 
-  finalizeAddreses() {
+  finalizeAddresses() {
     // First find the order finalization
     var addressesToCosign = this.state.addressesToCosign
     var users = this.state.users
@@ -44,11 +44,30 @@ export class Flash {
       return users[a].index - users[b].index
     })
     console.log('namesArr', namesArr);
-    var digests = namesArr.map((name) => {
+
+    var totalAddresses = namesArr.reduce((name, sum) => addressesToCosign[name].length + sum)
+
+    // validate if all the digests are the same length
+    var sameLengthOfDigests = (totalAddresses / Object.keys(addressesToCosign).length) === addressesToCosign[this.name].length
+    if(!sameLengthOfDigests) {
+      throw new Error("Different users have different lengths of digests to sign. Make sure you synchronized the addresses correctly.")
+    }
+
+    // TODO: Validate index of each address
+
+    var digestsPerUser = namesArr.map((name) => {
       return addressesToCosign[name]
     })
-    console.log('digests', digests);
-    
+    console.log('digestsPerUser', digestsPerUser)
+
+    var iota = this.iota
+    var addresses = digestsPerUser.map((_, i) => {
+      var digestsForIndex = digestsPerUser.map((digests) => {
+        return digests[i]
+      })
+      return finalizeAddress(iota, digestsForIndex)
+    })
+    console.log(addresses);
   }
 
   join(seed, name, settlementAddress, securityLevel) {
@@ -66,7 +85,7 @@ export class Flash {
           settlementAddress,
           securityLevel
         }
-        var addressesToCosign = generateAddressDigests(seed, depth + 1, securityLevel)
+        var addressesToCosign = generateAddressDigests(this.iota, seed, depth + 1, 0, securityLevel)
         return new Command(this.state, 'join', name, JSON.stringify(newUser), JSON.stringify(addressesToCosign)).executeSelf(this)
       } else {
         throw new Error("You can't join a channel with an empty addressesToCosign. Please create an initial channel first.")
@@ -74,7 +93,7 @@ export class Flash {
     }
   }
 
-  static generateState(seed, depth, depositAmount, settlementAddress, securityLevel) {
+  generateState(seed, depth, depositAmount, settlementAddress, securityLevel) {
     var state = {
       pending: {
         addressesToCosign: {}
@@ -98,9 +117,11 @@ export class Flash {
     }
 
     // + 1 for remainderAddress
-    state.addressesToCosign[this.name] = generateAddressDigests(seed, depth + 1, securityLevel)
+    state.pending.addressesToCosign[this.name] = generateAddressDigests(this.iota, seed, depth + 1, 0, securityLevel)
 
     // TODO: create a custom serialization function instead of JSON.stringify.
     return new Command(state, 'initialize', JSON.stringify(state))
   }
 }
+
+window.Flash = Flash

@@ -1,5 +1,5 @@
 export default class Command {
-  constructor(returnValue, command, args...) {
+  constructor(returnValue, command, ...args) {
     this.command = command
     this.args = args
     this.returnValue = returnValue
@@ -15,7 +15,7 @@ export default class Command {
   }
 
   static validateCommand(cmd) {
-    for(arg of cmd) {
+    for(var arg of cmd) {
       if(arg.indexOf("|") > -1) {
         throw new Error(`You cannot have a '${constants.commandSeparator}' in commands. Please remove '${constants.commandSeparator}' from the following command argument: ${arg}`)
       }

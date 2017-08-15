@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Flash Library Sample</title>
+  </head>
+  <body>
+
+  </body>
+  <script src="iota.js"></script>
+  <script src="flash.lib.js"></script>
+  <script>
+    var iota = new IOTA({
+      provider: "http://52.58.212.188:14700"
+    })
+    var flash1 = new Flash(iota, "The_PeterNat0r")
+    // for debugging reasons
+    window.flash1 = flash1
+    var seed1 = "ATOIEVOLI"
+    //seed, depth, depositAmount, settlementAddress, securityLevel
+    flash1.initialize(seed1, 5, 100, "SETTLEMENT99", 2)
+  </script>
+</html>

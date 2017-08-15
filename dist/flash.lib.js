@@ -87,11 +87,302 @@ return /******/ (function(modules) { // webpackBootstrap
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.Flash = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _state = __webpack_require__(1);
+
+var _command = __webpack_require__(2);
+
+var _command2 = _interopRequireDefault(_command);
+
+var _constants = __webpack_require__(3);
+
+var _constants2 = _interopRequireDefault(_constants);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Flash = exports.Flash = function Flash() {
-  _classCallCheck(this, Flash);
+var Flash = exports.Flash = function () {
+  function Flash(iota, name) {
+    _classCallCheck(this, Flash);
+
+    Object.assign(this, { iota: iota, name: name });
+  }
+
+  _createClass(Flash, [{
+    key: 'initialize',
+    value: function initialize(seed, depth, depositAmount, settlementAddress, securityLevel) {
+      this.state = this.generateState(seed, depth, depositAmount, settlementAddress, securityLevel);
+    }
+  }, {
+    key: 'stateIsInitialized',
+    value: function stateIsInitialized() {
+      return this.state.publicLedger.remainderAddress !== null;
+    }
+  }, {
+    key: 'executeCommand',
+    value: function executeCommand(serialData) {
+      var firstSepIndex = serialData.indexOf(_constants2.default.commandSeparator);
+      var command = serialData.substring(0, firstSepIndex);
+      var args = serialData.substring(firstSepIndex, serialData.length).split(_constants2.default.commandSeparator);
+
+      switch (command) {
+        case 'initialize':
+          this.state = JSON.parse(args[0]);
+          break;
+
+        case 'join':
+          var name = args[0];
+          var newUser = JSON.parse(args[1]);
+          var addressesToCosignForNewUser = JSON.parse(args[2]);
+          this.state.addressesToCosign[name] = addressesToCosignForNewUser;
+          this.state.users[name] = newUser;
+          break;
+      }
+    }
+  }, {
+    key: 'finalizeAddresses',
+    value: function finalizeAddresses() {
+      // First find the order finalization
+      var addressesToCosign = this.state.addressesToCosign;
+      var users = this.state.users;
+      var namesArr = Object.keys(users);
+      namesArr.sort(function (a, b) {
+        return users[a].index - users[b].index;
+      });
+      console.log('namesArr', namesArr);
+
+      var totalAddresses = namesArr.reduce(function (name, sum) {
+        return addressesToCosign[name].length + sum;
+      });
+
+      // validate if all the digests are the same length
+      var sameLengthOfDigests = totalAddresses / Object.keys(addressesToCosign).length === addressesToCosign[this.name].length;
+      if (!sameLengthOfDigests) {
+        throw new Error("Different users have different lengths of digests to sign. Make sure you synchronized the addresses correctly.");
+      }
+
+      // TODO: Validate index of each address
+
+      var digestsPerUser = namesArr.map(function (name) {
+        return addressesToCosign[name];
+      });
+      console.log('digestsPerUser', digestsPerUser);
+
+      var iota = this.iota;
+      var addresses = digestsPerUser.map(function (_, i) {
+        var digestsForIndex = digestsPerUser.map(function (digests) {
+          return digests[i];
+        });
+        return (0, _state.finalizeAddress)(iota, digestsForIndex);
+      });
+      console.log(addresses);
+    }
+  }, {
+    key: 'join',
+    value: function join(seed, name, settlementAddress, securityLevel) {
+      if (this.stateIsInitialized()) {
+        throw new Error("You can't add new users to an initialized channel. Please withdraw the funds and create a new channel if you want to add more users.");
+      } else {
+        if (name in this.state.users) {
+          throw new Error('User ' + name + ' already exists. Please choose a different name.');
+        }
+        if (Object.keys(this.state.pending.addressesToCosign).length > 0) {
+          var newUser = {
+            index: Object.keys(this.state.users).length,
+            balance: 0,
+            stake: 0,
+            settlementAddress: settlementAddress,
+            securityLevel: securityLevel
+          };
+          var addressesToCosign = (0, _state.generateAddressDigests)(this.iota, seed, depth + 1, 0, securityLevel);
+          return new _command2.default(this.state, 'join', name, JSON.stringify(newUser), JSON.stringify(addressesToCosign)).executeSelf(this);
+        } else {
+          throw new Error("You can't join a channel with an empty addressesToCosign. Please create an initial channel first.");
+        }
+      }
+    }
+  }, {
+    key: 'generateState',
+    value: function generateState(seed, depth, depositAmount, settlementAddress, securityLevel) {
+      var state = {
+        pending: {
+          addressesToCosign: {}
+        },
+        users: {},
+        publicLedger: {
+          depth: depth,
+          remaifirstIndexnderAddress: null,
+          depositAmount: depositAmount,
+          addressIndex: 0
+        }
+
+        // Add the first user
+      };state.users[this.name] = {
+        index: 0,
+        balance: 0,
+        stake: 0,
+        settlementAddress: settlementAddress,
+        securityLevel: securityLevel
+
+        // + 1 for remainderAddress
+      };state.pending.addressesToCosign[this.name] = (0, _state.generateAddressDigests)(this.iota, seed, depth + 1, 0, securityLevel);
+
+      // TODO: create a custom serialization function instead of JSON.stringify.
+      return new _command2.default(state, 'initialize', JSON.stringify(state));
+    }
+  }]);
+
+  return Flash;
+}();
+
+window.Flash = Flash;
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var generateAddressDigests = exports.generateAddressDigests = function generateAddressDigests(iota, seed, amount, index, securityLevel) {
+  var addressesToCosign = Object.assign([], Array(amount).fill().map(function (_, i) {
+    var obj = {
+      depth: i,
+      index: index,
+      trytes: iota.multisig.getDigest(seed, index, securityLevel)
+    };
+    index++;
+    return obj;
+  }));
+  return addressesToCosign;
+};
+
+var finalizeAddress = exports.finalizeAddress = function finalizeAddress(iota, digests) {
+  // Multisig address class
+  var Address = iota.multisig.address;
+  var finalAddress = new Address();
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = digests[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var digest = _step.value;
+
+      finalAddress.absorb(digest);
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  finalAddress = finalAddress.finalize();
+  return finalAddress;
+};
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Command = function () {
+  function Command(returnValue, command) {
+    _classCallCheck(this, Command);
+
+    this.command = command;
+
+    for (var _len = arguments.length, args = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+      args[_key - 2] = arguments[_key];
+    }
+
+    this.args = args;
+    this.returnValue = returnValue;
+    Command.validateCommand([command].concat(args));
+  }
+
+  _createClass(Command, [{
+    key: "command",
+    value: function command() {
+      var ret = [this.command].concat(this.args).join(constants.commandSeparator);
+    }
+  }, {
+    key: "executeSelf",
+    value: function executeSelf(flash) {
+      flash.executeCommand(this.command());
+    }
+  }], [{
+    key: "validateCommand",
+    value: function validateCommand(cmd) {
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = cmd[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var arg = _step.value;
+
+          if (arg.indexOf("|") > -1) {
+            throw new Error("You cannot have a '" + constants.commandSeparator + "' in commands. Please remove '" + constants.commandSeparator + "' from the following command argument: " + arg);
+          }
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+    }
+  }]);
+
+  return Command;
+}();
+
+exports.default = Command;
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = {
+  commandSeparator: '|'
 };
 
 /***/ })

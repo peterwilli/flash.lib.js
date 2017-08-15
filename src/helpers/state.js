@@ -1,8 +1,5 @@
-// Multisig address class
-var Address = iota.multisig.address;
-
-export const generateAddressDigests = (seed, amount, securityLevel) => {
-  var addresses = Object.assign([], Array(amount).fill().map((_, i) => {
+export const generateAddressDigests = (iota, seed, amount, index, securityLevel) => {
+  var addressesToCosign = Object.assign([], Array(amount).fill().map((_, i) => {
     var obj = {
       depth: i,
       index: index,
@@ -14,7 +11,9 @@ export const generateAddressDigests = (seed, amount, securityLevel) => {
   return addressesToCosign
 }
 
-export const finalizeAddress = (digests) => {
+export const finalizeAddress = (iota, digests) => {
+  // Multisig address class
+  var Address = iota.multisig.address;
   var finalAddress = new Address()
   for(var digest of digests) {
     finalAddress.absorb(digest)
