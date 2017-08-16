@@ -9,6 +9,7 @@ export default class Flash {
 
   initialize(seed, depth, depositAmount, settlementAddress, securityLevel) {
     var state = {
+      protocolVersion: constants.protocolVersion,
       pending: {
         addressesToCosign: {}
       },
@@ -31,7 +32,7 @@ export default class Flash {
     }
 
     // + 1 for remainderAddress
-    state.pending.addressesToCosign[this.name] = generateAddressDigests(this.iota, seed, depth + 1, 0, securityLevel)
+    state.pending.addressesToCosign[this.name] = generateAddressDigests(this.iota, seed, depth + constants.reservedAddressSpace, 0, securityLevel)
 
     // TODO: create a custom serialization function instead of JSON.stringify.
     return new Command(this, state, 'initialize', JSON.stringify(state))
@@ -112,7 +113,7 @@ export default class Flash {
           settlementAddress,
           securityLevel
         }
-        var addressesToCosign = generateAddressDigests(this.iota, seed, this.state.publicLedger.depth + 1, 0, securityLevel)
+        var addressesToCosign = generateAddressDigests(this.iota, seed, this.state.publicLedger.depth + constants.reservedAddressSpace, 0, securityLevel)
         return new Command(this, this.state, 'join', this.name, JSON.stringify(newUser), JSON.stringify(addressesToCosign))
       } else {
         throw new Error("You can't join a channel with an empty addressesToCosign. Please create an initial channel first.")

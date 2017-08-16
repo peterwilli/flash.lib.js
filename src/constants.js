@@ -1,3 +1,5 @@
 module.exports = {
-  commandSeparator: '|'
+  commandSeparator: '|',
+  reservedAddressSpace: 3,
+  protocolVersion: 1
 }
